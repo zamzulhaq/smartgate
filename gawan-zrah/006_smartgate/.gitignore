@@ -1,0 +1,11 @@
+# Folder data PostgreSQL lokal (cluster sendiri, port 5433) - jangan di-commit
+pgdata/
+# Log PostgreSQL
+pglogs/
+# Rahasia
+.env
+.env.local
+# Next.js / Node
+node_modules/
+.next/
+out/
