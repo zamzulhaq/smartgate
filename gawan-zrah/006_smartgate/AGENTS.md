@@ -62,7 +62,10 @@ Tidak perlu sempurna. Hal kecil yang belum rapi cukup dicatat, jangan dikerjakan
 Tidak perlu penjelasan panjang atau ringkasan ulang kode.
 
 ## Perintah umum (isi setelah proyek berjalan)
-- Jalankan web admin: `...`
-- Jalankan migrasi: `...`
-- Build/flash firmware: `...`
-- Jalankan app Android: `...`
+- Jalankan PostgreSQL lokal: `.\scripts\pg.ps1 start` (127.0.0.1:5433, cluster di `pgdata/`)
+- Jalankan web admin: `cd admin-web` lalu `npm run dev` (http://localhost:3000)
+- Build web admin: `cd admin-web` lalu `npm run build`
+- Kredensial aplikasi: `admin-web/.env.local` (role `smartgate_app`, non-superuser)
+- Jalankan migrasi: belum ada (belum ada tabel)
+- Build/flash firmware: belum ada
+- Jalankan app Android: belum ada
