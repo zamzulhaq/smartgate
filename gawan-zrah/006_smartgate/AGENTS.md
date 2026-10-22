@@ -1,21 +1,36 @@
 # AGENTS.md: Smart Gate & Manajemen Perumahan
 
 ## Proyek
-Aplikasi manajemen perumahan (300+ rumah, 4+ gerbang). Warga masuk/keluar dengan tap KTP (UID chip e-KTP), tamu lewat QR, semua tercatat di log. Gerbang HARUS tetap jalan saat internet mati. Dokumen acuan lengkap: PRD v0.2 (jika ada di /docs/PRD.md, baca itu).
+Aplikasi manajemen perumahan (300+ rumah, 4+ gerbang). Warga masuk/keluar dengan tap KTP (UID chip e-KTP), tamu lewat QR, semua tercatat di log. Gerbang HARUS tetap jalan saat internet mati. Dokumen acuan lengkap: PRD v0.2 di `/docs/PRD v0.2 - Smart Gate & Manajemen Perumahan.md` (baca itu).
 
-## Stack
-- Backend: Supabase (Postgres, Auth, RLS, Edge Functions)
-- Web admin: Next.js + Tailwind
-- App Android (warga + satpam): [Flutter / Expo, isi sesuai keputusan]
-- Firmware gerbang: ESP32 + 2x PN532 + relay + RTC DS3231 (PlatformIO/Arduino)
-- Notifikasi: Firebase Cloud Messaging
+## Stack (keputusan terbaru, 2026-10-22)
+- Database: PostgreSQL lokal (18.x) di `127.0.0.1:5433`, cluster di `pgdata/`, dikelola lewat `scripts/pg.ps1`
+- Backend/API: server lokal (Next.js route handlers di `/admin-web`), hanya untuk localhost
+- Web admin: Next.js 16 + Tailwind v4 + TypeScript (`/admin-web`)
+- Akses publik: domain + proxy + TLS dikerjakan terpisah nanti
+- App Android (warga + satpam), firmware gerbang (ESP32/PN532/relay), scanner: DITUNDA, belum ada kodenya
+- Notifikasi FCM: belum dimulai (ikut tahap setelah modul warga)
+
+PRD v0.2 tetap acuan requirement bisnis. Yang berubah hanya di mana backend-nya berjalan.
+
+## Keputusan arsitektur (2026-10-22)
+1. PostgreSQL lokal port 5433 menggantikan Supabase. Tidak ada Supabase Auth/Edge
+   Functions sekarang; penggantinya role PostgreSQL biasa + API lokal (route handlers).
+2. Database hanya `listen_addresses = '127.0.0.1'` - TIDAK dibuka ke jaringan publik.
+3. Backend/API jalan di server lokal (Next.js route handlers). Akses publik lewat
+   domain dikerjakan di luar repo ini nanti.
+4. Integrasi scanner dan gerbang ditunda: belum ada firmware ESP32, reader, MQTT,
+   maupun log tap offline. Modul hardware baru dikerjakan setelah modul warga.
+5. Modul bisnis (warga, kartu, tamu, log akses) tetap mengikuti PRD v0.2 bagian 7.
 
 ## Struktur repo (usulan, ikuti jika belum ada)
-- /supabase   -> migrasi SQL, RLS, edge functions
-- /admin-web  -> Next.js
-- /mobile     -> app Android
-- /firmware   -> kode ESP32
+- /admin-web  -> Next.js (web admin + API lokal) [ADA]
+- /pgdata     -> cluster PostgreSQL lokal, gitignored [ADA]
+- /scripts    -> pg.ps1 (kontrol PostgreSQL lokal) [ADA]
 - /docs       -> PRD, PROGRESS.md, wiring
+- /mobile     -> app Android (belum, ditunda)
+- /firmware   -> kode ESP32 (belum, ditunda)
+- /supabase   -> tidak dipakai lagi (Supabase ditunda)
 
 ## Aturan kerja (WAJIB)
 1. Kerjakan HANYA tugas yang diminta di prompt. Jangan refactor, jangan rename, jangan tambah fitur, jangan ubah file di luar batasan tugas.
@@ -30,7 +45,7 @@ Aplikasi manajemen perumahan (300+ rumah, 4+ gerbang). Warga masuk/keluar dengan
 - UID KTP TIDAK PERNAH disimpan mentah. Simpan sebagai HMAC-SHA256 dengan pepper rahasia, bukan hash polos (UID pendek, mudah di-brute force).
 - Tabel `access_logs` insert-only: tidak ada update/delete untuk peran aplikasi mana pun.
 - Semua tabel pakai Row Level Security. Warga hanya melihat data rumahnya sendiri. Satpam tidak boleh membaca tabel `cards`.
-- Controller ESP32 mengakses server hanya lewat Edge Function dengan device key, tidak langsung ke tabel.
+- Controller ESP32 mengakses server hanya lewat endpoint API dengan device key, tidak langsung ke tabel.
 - QR tamu ditandatangani (HMAC/Ed25519) dan memuat masa berlaku, batas pemakaian, dan token_id untuk pencabutan.
 
 ## Aturan khusus firmware (gerbang)
@@ -44,7 +59,7 @@ Aplikasi manajemen perumahan (300+ rumah, 4+ gerbang). Warga masuk/keluar dengan
 ## Konvensi
 - Bahasa kode dan nama tabel/kolom: Inggris atau Indonesia, tapi KONSISTEN dengan yang sudah ada. Ikuti penamaan di PRD bagian 7.
 - Teks yang tampil ke pengguna: Bahasa Indonesia.
-- Perubahan database selalu lewat file migrasi di /supabase/migrations, bukan edit manual.
+- Perubahan database selalu lewat file migrasi SQL yang di-commit di repo, bukan edit manual.
 - Tulis kode yang mudah dibaca pemula. Komentar singkat hanya untuk logika non-obvious (terutama relay, HMAC, QR).
 
 ## Definisi "selesai"
