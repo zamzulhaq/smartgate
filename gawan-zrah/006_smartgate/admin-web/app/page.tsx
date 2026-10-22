@@ -1,5 +1,8 @@
 import { Suspense } from "react";
 import DbStatus from "./db-status";
+import WargaRumah from "./warga-rumah";
+import { query } from "@/lib/db";
+import type { Rumah, Warga } from "@/lib/types";
 
 export default function Home() {
   return (
@@ -22,6 +25,25 @@ export default function Home() {
           <DbStatus />
         </Suspense>
       </section>
+
+      <Suspense fallback={<p className="text-sm text-zinc-500">Memuat data rumah dan warga...</p>}>
+        <DataWargaRumah />
+      </Suspense>
     </main>
   );
+}
+
+// Data rumah dan warga diambil di server (bukan lewat API) supaya halaman
+// pertama sudah berisi data. Penambahan data tetap lewat API lokal.
+async function DataWargaRumah() {
+  const [rumah, warga] = await Promise.all([
+    query<Rumah>(
+      "select id, blok, nomor, status_hunian, catatan from houses order by blok, nomor",
+    ),
+    query<Warga>(
+      "select id, house_id, nama, status_keluarga, no_hp, aktif from residents order by nama",
+    ),
+  ]);
+
+  return <WargaRumah rumah={rumah} warga={warga} />;
 }
