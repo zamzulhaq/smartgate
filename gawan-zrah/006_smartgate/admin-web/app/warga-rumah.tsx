@@ -2,10 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { STATUS_HUNIAN, STATUS_KELUARGA, type Rumah, type Warga } from "@/lib/types";
+import { STATUS_HUNIAN, STATUS_KELUARGA, type Rumah, type StatusHunian, type StatusKeluarga, type Warga } from "@/lib/types";
 
-// Data awal dikirim dari Server Component (app/page.tsx). Setelah tambah data,
-// komponen ini memanggil router.refresh() supaya server mengirim data baru.
 export default function WargaRumah({
   rumah,
   warga,
@@ -15,6 +13,21 @@ export default function WargaRumah({
 }) {
   const router = useRouter();
   const [pesan, setPesan] = useState("");
+
+  // Edit rumah
+  const [editRumahId, setEditRumahId] = useState("");
+  const [editBlok, setEditBlok] = useState("");
+  const [editNomor, setEditNomor] = useState("");
+  const [editStatusH, setEditStatusH] = useState<StatusHunian>("pemilik");
+  const [editCatatan, setEditCatatan] = useState("");
+
+  // Edit warga
+  const [editWargaId, setEditWargaId] = useState("");
+  const [editNama, setEditNama] = useState("");
+  const [editHouseId, setEditHouseId] = useState("");
+  const [editStatusK, setEditStatusK] = useState<StatusKeluarga>("kepala_keluarga");
+  const [editNoHp, setEditNoHp] = useState("");
+  const [editAktif, setEditAktif] = useState(true);
 
   async function tambahRumah(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -38,6 +51,43 @@ export default function WargaRumah({
     }
   }
 
+  async function mulaiEditRumah(item: Rumah) {
+    setEditRumahId(item.id);
+    setEditBlok(item.blok);
+    setEditNomor(item.nomor);
+    setEditStatusH(item.status_hunian);
+    setEditCatatan(item.catatan ?? "");
+    setPesan("");
+  }
+
+  function batalEditRumah() {
+    setEditRumahId("");
+    setEditBlok("");
+    setEditNomor("");
+    setEditCatatan("");
+  }
+
+  async function simpanEditRumah(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const hasil = await fetch("/api/houses", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: editRumahId,
+        blok: editBlok,
+        nomor: editNomor,
+        status_hunian: editStatusH,
+        catatan: editCatatan,
+      }),
+    });
+    const data = await hasil.json();
+    setPesan(hasil.ok ? "Rumah berhasil diperbarui." : (data.error ?? "Gagal mengubah rumah."));
+    if (hasil.ok) {
+      batalEditRumah();
+      router.refresh();
+    }
+  }
+
   async function tambahWarga(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
@@ -57,6 +107,46 @@ export default function WargaRumah({
     setPesan(hasil.ok ? "Warga berhasil disimpan." : (data.error ?? "Gagal menambah warga."));
     if (hasil.ok) {
       form.reset();
+      router.refresh();
+    }
+  }
+
+  async function mulaiEditWarga(item: Warga) {
+    setEditWargaId(item.id);
+    setEditNama(item.nama);
+    setEditHouseId(item.house_id);
+    setEditStatusK(item.status_keluarga);
+    setEditNoHp(item.no_hp ?? "");
+    setEditAktif(item.aktif);
+    setPesan("");
+  }
+
+  function batalEditWarga() {
+    setEditWargaId("");
+    setEditNama("");
+    setEditHouseId("");
+    setEditNoHp("");
+    setEditAktif(true);
+  }
+
+  async function simpanEditWarga(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const hasil = await fetch("/api/residents", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: editWargaId,
+        house_id: editHouseId,
+        nama: editNama,
+        status_keluarga: editStatusK,
+        no_hp: editNoHp,
+        aktif: editAktif,
+      }),
+    });
+    const data = await hasil.json();
+    setPesan(hasil.ok ? "Warga berhasil diperbarui." : (data.error ?? "Gagal mengubah warga."));
+    if (hasil.ok) {
+      batalEditWarga();
       router.refresh();
     }
   }
@@ -99,6 +189,40 @@ export default function WargaRumah({
           </button>
         </form>
 
+        {editRumahId && (
+          <form onSubmit={simpanEditRumah} className="flex flex-wrap items-end gap-3 rounded border border-zinc-200 p-3">
+            <span className="w-full text-sm font-medium text-zinc-700">Edit Rumah</span>
+            <label className="flex flex-col gap-1 text-sm">
+              Blok
+              <input value={editBlok} onChange={(e) => setEditBlok(e.target.value)} required className="rounded border border-zinc-300 px-2 py-1" />
+            </label>
+            <label className="flex flex-col gap-1 text-sm">
+              Nomor
+              <input value={editNomor} onChange={(e) => setEditNomor(e.target.value)} required className="rounded border border-zinc-300 px-2 py-1" />
+            </label>
+            <label className="flex flex-col gap-1 text-sm">
+              Status Hunian
+              <select value={editStatusH} onChange={(e) => setEditStatusH(e.target.value as StatusHunian)} className="rounded border border-zinc-300 px-2 py-1">
+                {STATUS_HUNIAN.map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="flex flex-col gap-1 text-sm">
+              Catatan
+              <input value={editCatatan} onChange={(e) => setEditCatatan(e.target.value)} className="rounded border border-zinc-300 px-2 py-1" />
+            </label>
+            <button type="submit" className="rounded bg-zinc-900 px-3 py-1 text-sm text-white">
+              Simpan
+            </button>
+            <button type="button" onClick={batalEditRumah} className="rounded border border-zinc-300 px-3 py-1 text-sm">
+              Batal
+            </button>
+          </form>
+        )}
+
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-zinc-200">
@@ -106,6 +230,7 @@ export default function WargaRumah({
               <th className="py-2">Nomor</th>
               <th className="py-2">Status Hunian</th>
               <th className="py-2">Catatan</th>
+              <th className="py-2"></th>
             </tr>
           </thead>
           <tbody>
@@ -115,11 +240,16 @@ export default function WargaRumah({
                 <td className="py-2">{item.nomor}</td>
                 <td className="py-2">{item.status_hunian}</td>
                 <td className="py-2">{item.catatan ?? "-"}</td>
+                <td className="py-2">
+                  <button type="button" onClick={() => mulaiEditRumah(item)} className="text-zinc-700 underline">
+                    Edit
+                  </button>
+                </td>
               </tr>
             ))}
             {rumah.length === 0 && (
               <tr>
-                <td colSpan={4} className="py-2 text-zinc-500">
+                <td colSpan={5} className="py-2 text-zinc-500">
                   Belum ada rumah.
                 </td>
               </tr>
@@ -170,6 +300,50 @@ export default function WargaRumah({
           </button>
         </form>
 
+        {editWargaId && (
+          <form onSubmit={simpanEditWarga} className="flex flex-wrap items-end gap-3 rounded border border-zinc-200 p-3">
+            <span className="w-full text-sm font-medium text-zinc-700">Edit Warga</span>
+            <label className="flex flex-col gap-1 text-sm">
+              Nama
+              <input value={editNama} onChange={(e) => setEditNama(e.target.value)} required className="rounded border border-zinc-300 px-2 py-1" />
+            </label>
+            <label className="flex flex-col gap-1 text-sm">
+              Rumah
+              <select value={editHouseId} onChange={(e) => setEditHouseId(e.target.value)} required className="rounded border border-zinc-300 px-2 py-1">
+                {rumah.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.blok} {item.nomor}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="flex flex-col gap-1 text-sm">
+              Status Keluarga
+              <select value={editStatusK} onChange={(e) => setEditStatusK(e.target.value as StatusKeluarga)} className="rounded border border-zinc-300 px-2 py-1">
+                {STATUS_KELUARGA.map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="flex flex-col gap-1 text-sm">
+              No HP
+              <input value={editNoHp} onChange={(e) => setEditNoHp(e.target.value)} className="rounded border border-zinc-300 px-2 py-1" />
+            </label>
+            <label className="flex items-center gap-2 pb-1 text-sm">
+              <input type="checkbox" checked={editAktif} onChange={(e) => setEditAktif(e.target.checked)} />
+              Aktif
+            </label>
+            <button type="submit" className="rounded bg-zinc-900 px-3 py-1 text-sm text-white">
+              Simpan
+            </button>
+            <button type="button" onClick={batalEditWarga} className="rounded border border-zinc-300 px-3 py-1 text-sm">
+              Batal
+            </button>
+          </form>
+        )}
+
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-zinc-200">
@@ -178,6 +352,7 @@ export default function WargaRumah({
               <th className="py-2">Status Keluarga</th>
               <th className="py-2">No HP</th>
               <th className="py-2">Aktif</th>
+              <th className="py-2"></th>
             </tr>
           </thead>
           <tbody>
@@ -188,11 +363,16 @@ export default function WargaRumah({
                 <td className="py-2">{item.status_keluarga}</td>
                 <td className="py-2">{item.no_hp ?? "-"}</td>
                 <td className="py-2">{item.aktif ? "ya" : "tidak"}</td>
+                <td className="py-2">
+                  <button type="button" onClick={() => mulaiEditWarga(item)} className="text-zinc-700 underline">
+                    Edit
+                  </button>
+                </td>
               </tr>
             ))}
             {warga.length === 0 && (
               <tr>
-                <td colSpan={5} className="py-2 text-zinc-500">
+                <td colSpan={6} className="py-2 text-zinc-500">
                   Belum ada warga.
                 </td>
               </tr>
