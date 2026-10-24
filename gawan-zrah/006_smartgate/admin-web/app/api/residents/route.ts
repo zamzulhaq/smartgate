@@ -43,7 +43,7 @@ export async function POST(request: Request) {
 
   const houseId = typeof data.house_id === "string" ? data.house_id.trim() : "";
   const nama = typeof data.nama === "string" ? data.nama.trim() : "";
-  const status = data.status_keluarga;
+  const status = typeof data.status_keluarga === "string" ? data.status_keluarga.trim() : "";
   const noHp = typeof data.no_hp === "string" ? data.no_hp.trim() : "";
 
   if (!POLA_UUID.test(houseId)) {
@@ -90,7 +90,7 @@ export async function PUT(request: Request) {
   const id = typeof data.id === "string" ? data.id.trim() : "";
   const houseId = typeof data.house_id === "string" ? data.house_id.trim() : "";
   const nama = typeof data.nama === "string" ? data.nama.trim() : "";
-  const status = data.status_keluarga;
+  const status = typeof data.status_keluarga === "string" ? data.status_keluarga.trim() : "";
   const noHp = typeof data.no_hp === "string" ? data.no_hp.trim() : "";
 
   if (!POLA_UUID.test(id)) {

@@ -43,7 +43,7 @@ export async function POST(request: Request) {
 
   const blok = typeof data.blok === "string" ? data.blok.trim() : "";
   const nomor = typeof data.nomor === "string" ? data.nomor.trim() : "";
-  const status = data.status_hunian;
+  const status = typeof data.status_hunian === "string" ? data.status_hunian.trim() : "";
   const catatan = typeof data.catatan === "string" ? data.catatan.trim() : "";
 
   if (!blok || !nomor) {
