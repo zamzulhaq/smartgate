@@ -1,17 +1,22 @@
 import { NextResponse } from "next/server";
-import { kodeError, query } from "@/lib/db";
+import { dapatkanSesi } from "@/lib/require-admin";
+import { kodeError, queryAs } from "@/lib/db";
 import { STATUS_KELUARGA, type StatusKeluarga, type Warga } from "@/lib/types";
-
-// Keamanan: belum ada autentikasi admin. Endpoint ini hanya untuk pengujian
-// lokal; server dibatasi ke 127.0.0.1 (script "dev"/"start" di package.json).
-// localhost BUKAN autentikasi dan TIDAK boleh dianggap pengaman - jangan buka
-// ke internet sebelum ada login dan otorisasi.
 
 const POLA_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function GET() {
+  const sesi = await dapatkanSesi();
+  if (!sesi) {
+    return NextResponse.json({ error: "Tidak terautentikasi" }, { status: 401 });
+  }
+  if (sesi.role !== "admin") {
+    return NextResponse.json({ error: "Tidak berhak" }, { status: 403 });
+  }
+
   try {
-    const rows = await query<Warga>(
+    const rows = await queryAs<Warga>(
+      { role: sesi.role, userId: sesi.profileId },
       "select id, house_id, nama, status_keluarga, no_hp, aktif from residents order by nama",
     );
     return NextResponse.json(rows);
@@ -21,6 +26,14 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const sesi = await dapatkanSesi();
+  if (!sesi) {
+    return NextResponse.json({ error: "Tidak terautentikasi" }, { status: 401 });
+  }
+  if (sesi.role !== "admin") {
+    return NextResponse.json({ error: "Tidak berhak" }, { status: 403 });
+  }
+
   let data: Record<string, unknown>;
   try {
     data = (await request.json()) as Record<string, unknown>;
@@ -44,7 +57,8 @@ export async function POST(request: Request) {
   }
 
   try {
-    const rows = await query<Warga>(
+    const rows = await queryAs<Warga>(
+      { role: sesi.role, userId: sesi.profileId },
       "insert into residents (house_id, nama, status_keluarga, no_hp, aktif) values ($1, $2, $3, $4, $5) returning id, house_id, nama, status_keluarga, no_hp, aktif",
       [houseId, nama, status, noHp || null, typeof data.aktif === "boolean" ? data.aktif : true],
     );

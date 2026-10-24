@@ -1,15 +1,20 @@
 import { NextResponse } from "next/server";
-import { kodeError, query } from "@/lib/db";
+import { dapatkanSesi } from "@/lib/require-admin";
+import { kodeError, queryAs } from "@/lib/db";
 import { STATUS_HUNIAN, type Rumah, type StatusHunian } from "@/lib/types";
 
-// Keamanan: belum ada autentikasi admin. Endpoint ini hanya untuk pengujian
-// lokal; server dibatasi ke 127.0.0.1 (script "dev"/"start" di package.json).
-// localhost BUKAN autentikasi dan TIDAK boleh dianggap pengaman - jangan buka
-// ke internet sebelum ada login dan otorisasi.
-
 export async function GET() {
+  const sesi = await dapatkanSesi();
+  if (!sesi) {
+    return NextResponse.json({ error: "Tidak terautentikasi" }, { status: 401 });
+  }
+  if (sesi.role !== "admin") {
+    return NextResponse.json({ error: "Tidak berhak" }, { status: 403 });
+  }
+
   try {
-    const rows = await query<Rumah>(
+    const rows = await queryAs<Rumah>(
+      { role: sesi.role, userId: sesi.profileId },
       "select id, blok, nomor, status_hunian, catatan from houses order by blok, nomor",
     );
     return NextResponse.json(rows);
@@ -19,6 +24,14 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const sesi = await dapatkanSesi();
+  if (!sesi) {
+    return NextResponse.json({ error: "Tidak terautentikasi" }, { status: 401 });
+  }
+  if (sesi.role !== "admin") {
+    return NextResponse.json({ error: "Tidak berhak" }, { status: 403 });
+  }
+
   let data: Record<string, unknown>;
   try {
     data = (await request.json()) as Record<string, unknown>;
@@ -39,7 +52,8 @@ export async function POST(request: Request) {
   }
 
   try {
-    const rows = await query<Rumah>(
+    const rows = await queryAs<Rumah>(
+      { role: sesi.role, userId: sesi.profileId },
       "insert into houses (blok, nomor, status_hunian, catatan) values ($1, $2, $3, $4) returning id, blok, nomor, status_hunian, catatan",
       [blok, nomor, status, catatan || null],
     );
