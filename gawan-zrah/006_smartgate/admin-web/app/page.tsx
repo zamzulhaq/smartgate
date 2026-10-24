@@ -20,6 +20,9 @@ export default function DashboardPage() {
           <Link href="/rumah-warga" className="rounded px-2 py-1 text-zinc-700 hover:bg-zinc-100">
             Rumah &amp; Warga
           </Link>
+          <Link href="/kartu" className="rounded px-2 py-1 text-zinc-700 hover:bg-zinc-100">
+            Kartu Akses
+          </Link>
         </nav>
       </aside>
       <div className="flex min-h-screen flex-1 flex-col">
@@ -33,9 +36,12 @@ export default function DashboardPage() {
               <Link href="/" className="text-zinc-900">
                 Dashboard
               </Link>
-              <Link href="/rumah-warga" className="text-zinc-700">
-                Rumah &amp; Warga
-              </Link>
+            <Link href="/rumah-warga" className="text-zinc-700">
+              Rumah &amp; Warga
+            </Link>
+            <Link href="/kartu" className="text-zinc-700">
+              Kartu Akses
+            </Link>
             </nav>
           </div>
         </header>
@@ -96,10 +102,10 @@ async function Ringkasan() {
         </div>
         <div className="flex flex-wrap gap-2 text-sm">
           <Link
-            href="/rumah-warga"
-            className="rounded bg-zinc-900 px-3 py-1 text-white"
+            href="/kartu"
+            className="rounded border border-zinc-300 px-3 py-1 text-zinc-700"
           >
-            Kelola Rumah &amp; Warga
+            Kelola Kartu Akses
           </Link>
         </div>
       </section>

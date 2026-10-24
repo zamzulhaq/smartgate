@@ -22,6 +22,9 @@ export default function RumahWargaPage() {
           <Link href="/rumah-warga" className="rounded px-2 py-1 text-zinc-900 hover:bg-zinc-100">
             Rumah &amp; Warga
           </Link>
+          <Link href="/kartu" className="rounded px-2 py-1 text-zinc-700 hover:bg-zinc-100">
+            Kartu Akses
+          </Link>
         </nav>
       </aside>
       <div className="flex min-h-screen flex-1 flex-col">
@@ -35,9 +38,12 @@ export default function RumahWargaPage() {
               <Link href="/" className="text-zinc-700">
                 Dashboard
               </Link>
-              <Link href="/rumah-warga" className="text-zinc-900">
-                Rumah &amp; Warga
-              </Link>
+            <Link href="/rumah-warga" className="text-zinc-900">
+              Rumah &amp; Warga
+            </Link>
+            <Link href="/kartu" className="text-zinc-700">
+              Kartu Akses
+            </Link>
             </nav>
           </div>
         </header>
