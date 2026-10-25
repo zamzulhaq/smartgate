@@ -93,6 +93,10 @@ export async function POST(request: Request) {
     if (kodeError(error) === "23503") {
       return NextResponse.json({ error: "Warga tidak ditemukan" }, { status: 400 });
     }
+    const msg = error instanceof Error ? error.message : "";
+    if (msg.includes("UID_HMAC_SECRET")) {
+      return NextResponse.json({ error: "Konfigurasi server tidak lengkap" }, { status: 500 });
+    }
     return NextResponse.json({ error: "Gagal mendaftarkan kartu" }, { status: 500 });
   }
 }
