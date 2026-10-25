@@ -20,11 +20,12 @@ export async function GET() {
       resident_id: string;
       label: string | null;
       status: string;
+      revoked_at: string | null;
       created_at: string;
       nama: string;
     }>(
       { role: sesi.role, userId: sesi.profileId },
-      `select c.id, c.resident_id, c.label, c.status, c.created_at, r.nama
+      `select c.id, c.resident_id, c.label, c.status, c.revoked_at, c.created_at, r.nama
        from cards c
        join residents r on r.id = c.resident_id
        order by c.created_at desc`,

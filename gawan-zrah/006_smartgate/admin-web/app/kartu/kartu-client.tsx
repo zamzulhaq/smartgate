@@ -10,6 +10,7 @@ type Kartu = {
   resident_id: string;
   label: string | null;
   status: string;
+  revoked_at: string | null;
   created_at: string;
   nama: string;
 };
@@ -51,6 +52,20 @@ export default function KartuClient() {
     setPesan(res.ok ? "Kartu berhasil didaftarkan." : data.error ?? "Gagal mendaftarkan kartu.");
     if (res.ok) {
       form.reset();
+      muat();
+      router.refresh();
+    }
+  }
+
+  async function ubahStatus(item: Kartu, aksi: "cabut" | "aktifkan") {
+    const res = await fetch(`/api/cards/${item.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ aksi }),
+    });
+    const data = await res.json();
+    setPesan(res.ok ? (aksi === "cabut" ? "Kartu dicabut." : "Kartu diaktifkan.") : data.error ?? "Gagal mengubah status kartu.");
+    if (res.ok) {
       muat();
       router.refresh();
     }
@@ -144,6 +159,8 @@ export default function KartuClient() {
                     <th className="px-3 py-2">Label</th>
                     <th className="px-3 py-2">Status</th>
                     <th className="px-3 py-2">Terdaftar</th>
+                    <th className="px-3 py-2">Dicabut</th>
+                    <th className="px-3 py-2">Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -153,11 +170,32 @@ export default function KartuClient() {
                       <td className="px-3 py-2">{k.label ?? "-"}</td>
                       <td className="px-3 py-2">{k.status}</td>
                       <td className="px-3 py-2">{k.created_at}</td>
+                      <td className="px-3 py-2">{k.revoked_at ?? "-"}</td>
+                      <td className="px-3 py-2">
+                        {k.status === "aktif" && (
+                          <button
+                            type="button"
+                            onClick={() => ubahStatus(k, "cabut")}
+                            className="rounded border border-zinc-300 px-2 py-1 text-xs text-zinc-700 hover:bg-zinc-100"
+                          >
+                            Cabut
+                          </button>
+                        )}
+                        {k.status === "dicabut" && (
+                          <button
+                            type="button"
+                            onClick={() => ubahStatus(k, "aktifkan")}
+                            className="rounded border border-zinc-300 px-2 py-1 text-xs text-zinc-700 hover:bg-zinc-100"
+                          >
+                            Aktifkan
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   ))}
                   {kartu.length === 0 && (
                     <tr>
-                      <td colSpan={4} className="px-3 py-2 text-zinc-500">
+                      <td colSpan={6} className="px-3 py-2 text-zinc-500">
                         Belum ada kartu terdaftar.
                       </td>
                     </tr>
