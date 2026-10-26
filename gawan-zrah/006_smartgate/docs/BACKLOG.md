@@ -24,3 +24,12 @@ Catatan pekerjaan yang sengaja ditunda. Bukan komitmen jadwal.
 
 - Scanner NFC/e-KTP, firmware gerbang, MQTT, sinkronisasi offline, dan fungsi buka gerbang.
 - OCR e-KTP: tidak direncanakan; input NIK manual oleh admin/satpam.
+## Gap: waktu pulang kunjungan tamu (belum disetujui)
+
+- [ ] **Belum ada requirement yang disetujui.** PRD v0.2 hanya mengatur log keluar-masuk
+      lewat ccess_logs (insert-only, berbasis perangkat/scan) dan alur kunjungan tamu
+      yang disetujui saat ini hanya mencatat kedatangan. Karena itu waktu_pulang pada
+      guest_visits dan tombol "Tandai Pulang" belum diimplementasikan.
+- [ ] Jika operasional membutuhkan, perlu keputusan scope: tambah kolom waktu_pulang,
+      API/PATCH terbatas (admin/satpam, sekali isi), policy RLS UPDATE kolom terkait,
+      serta perubahan UI riwayat kunjungan. ccess_logs tetap insert-only.
