@@ -13,11 +13,11 @@ export default function TamuPage() {
 
 async function TamuShell() {
   const sesi = await dapatkanSesi();
-  if (!sesi || sesi.role !== "admin") {
+  if (!sesi || (sesi.role !== "admin" && sesi.role !== "satpam")) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-zinc-50 px-4">
         <div className="w-full max-w-md rounded border border-zinc-200 bg-white p-6 text-center">
-          <p className="text-sm text-zinc-600">Login sebagai admin untuk mengelola data tamu.</p>
+          <p className="text-sm text-zinc-600">Login sebagai admin atau satpam untuk mengelola data tamu.</p>
           <Link href="/" className="mt-3 inline-block text-sm text-zinc-900 underline">
             Kembali ke Dashboard
           </Link>

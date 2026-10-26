@@ -34,7 +34,7 @@ export default function TamuClient() {
   async function muat() {
     const [rt, rr, rk] = await Promise.all([
       fetch("/api/guests").then((r) => r.json()),
-      fetch("/api/houses").then((r) => r.json()),
+      fetch("/api/houses/ringkas").then((r) => r.json()),
       fetch("/api/guest-visits").then((r) => r.json()),
     ]);
     setTamu(Array.isArray(rt) ? rt : []);

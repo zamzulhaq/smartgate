@@ -79,12 +79,24 @@ export default function DashboardPage() {
 
 async function Ringkasan() {
   const sesi = await dapatkanSesi();
-  if (!sesi || sesi.role !== "admin") {
+  if (!sesi) {
+    return <p className="text-sm text-zinc-600">Login untuk melihat dashboard.</p>;
+  }
+  if (sesi.role === "satpam") {
     return (
-      <p className="text-sm text-zinc-600">
-        Login sebagai admin untuk melihat dashboard.
-      </p>
+      <section className="flex flex-col gap-2">
+        <h2 className="text-lg font-semibold text-zinc-900">Pos Satpam</h2>
+        <p className="text-sm text-zinc-600">
+          Gunakan menu Tamu untuk mencari/mendaftarkan tamu dan mencatat kunjungan.
+        </p>
+        <Link href="/tamu" className="w-fit rounded border border-zinc-300 px-3 py-1 text-sm text-zinc-700">
+          Buka Halaman Tamu
+        </Link>
+      </section>
     );
+  }
+  if (sesi.role !== "admin") {
+    return <p className="text-sm text-zinc-600">Akses ditolak atau gagal memuat ringkasan.</p>;
   }
 
   try {

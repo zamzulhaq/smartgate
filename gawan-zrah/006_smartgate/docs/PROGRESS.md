@@ -20,6 +20,9 @@ dicatat di `docs/BACKLOG.md`.
 - [x] Tamu (MVP tanpa QR): `guests` + `guest_visits`, identifikasi duplikat via HMAC NIK
       (`NIK_HMAC_SECRET` terpisah, wajib, tanpa fallback), registrasi profil + pencatatan
       kunjungan manual di `/tamu`, FK `access_logs.guest_id`.
+- [x] Satpam dapat registrasi/mencari profil tamu dan mencatat kunjungan (RLS:
+      `SELECT/INSERT` pada `guests`/`guest_visits`, `SELECT` pada `houses`;
+      rumah/warga/kartu/log tetap admin).
 
 ## Belum dikerjakan
 

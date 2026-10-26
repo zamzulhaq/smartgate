@@ -9,7 +9,7 @@ export async function GET() {
   if (!sesi) {
     return NextResponse.json({ error: "Tidak terautentikasi" }, { status: 401 });
   }
-  if (sesi.role !== "admin") {
+  if (sesi.role !== "admin" && sesi.role !== "satpam") {
     return NextResponse.json({ error: "Tidak berhak" }, { status: 403 });
   }
 
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
   if (!sesi) {
     return NextResponse.json({ error: "Tidak terautentikasi" }, { status: 401 });
   }
-  if (sesi.role !== "admin") {
+  if (sesi.role !== "admin" && sesi.role !== "satpam") {
     return NextResponse.json({ error: "Tidak berhak" }, { status: 403 });
   }
 
