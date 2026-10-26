@@ -30,16 +30,25 @@ export default function TamuClient() {
   const [rumah, setRumah] = useState<Rumah[]>([]);
   const [kunjungan, setKunjungan] = useState<Kunjungan[]>([]);
   const [pesan, setPesan] = useState("");
+  const [cari, setCari] = useState("");
+  const [pilih, setPilih] = useState<Tamu | null>(null);
+
+  async function muatTamu(q: string) {
+    const url = q ? `/api/guests?q=${encodeURIComponent(q)}` : "/api/guests";
+    const rt = await fetch(url).then((r) => r.json());
+    setTamu(Array.isArray(rt) ? rt : []);
+  }
+
+  async function muatKunjungan(guestId: string) {
+    const url = guestId ? `/api/guest-visits?guest_id=${guestId}` : "/api/guest-visits";
+    const rk = await fetch(url).then((r) => r.json());
+    setKunjungan(Array.isArray(rk) ? rk : []);
+  }
 
   async function muat() {
-    const [rt, rr, rk] = await Promise.all([
-      fetch("/api/guests").then((r) => r.json()),
-      fetch("/api/houses/ringkas").then((r) => r.json()),
-      fetch("/api/guest-visits").then((r) => r.json()),
-    ]);
-    setTamu(Array.isArray(rt) ? rt : []);
+    const rr = await fetch("/api/houses/ringkas").then((r) => r.json());
     setRumah(Array.isArray(rr) ? rr : []);
-    setKunjungan(Array.isArray(rk) ? rk : []);
+    await Promise.all([muatTamu(cari), muatKunjungan(pilih?.id ?? "")]);
   }
 
   useEffect(() => {
@@ -210,6 +219,36 @@ export default function TamuClient() {
 
           <section className="flex flex-col gap-3">
             <h2 className="text-base font-semibold text-zinc-900">Profil Tamu</h2>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                muatTamu(cari);
+              }}
+              className="flex flex-wrap items-end gap-2"
+            >
+              <label className="flex flex-col gap-1 text-sm">
+                Cari Nama Tamu
+                <input
+                  value={cari}
+                  onChange={(e) => setCari(e.target.value)}
+                  placeholder="mis. Budi"
+                  className="rounded border border-zinc-300 px-2 py-1"
+                />
+              </label>
+              <button type="submit" className="rounded bg-zinc-900 px-3 py-1 text-sm text-white">
+                Cari
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setCari("");
+                  muatTamu("");
+                }}
+                className="rounded border border-zinc-300 px-3 py-1 text-sm text-zinc-700"
+              >
+                Tampilkan Semua
+              </button>
+            </form>
             <div className="overflow-x-auto rounded border border-zinc-200 bg-white">
               <table className="w-full text-left text-sm">
                 <thead>
@@ -217,6 +256,7 @@ export default function TamuClient() {
                     <th className="px-3 py-2">Nama</th>
                     <th className="px-3 py-2">Jumlah Kunjungan</th>
                     <th className="px-3 py-2">Kunjungan Terakhir</th>
+                    <th className="px-3 py-2">Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -225,12 +265,24 @@ export default function TamuClient() {
                       <td className="px-3 py-2">{t.nama}</td>
                       <td className="px-3 py-2">{t.jumlah_kunjungan}</td>
                       <td className="px-3 py-2">{t.terakhir_datang ? waktu(t.terakhir_datang) : "-"}</td>
+                      <td className="px-3 py-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPilih(t);
+                            muatKunjungan(t.id);
+                          }}
+                          className="rounded border border-zinc-300 px-2 py-1 text-xs text-zinc-700 hover:bg-zinc-100"
+                        >
+                          Lihat Riwayat
+                        </button>
+                      </td>
                     </tr>
                   ))}
                   {tamu.length === 0 && (
                     <tr>
-                      <td colSpan={3} className="px-3 py-2 text-zinc-500">
-                        Belum ada profil tamu.
+                      <td colSpan={4} className="px-3 py-2 text-zinc-500">
+                        Tidak ada tamu yang cocok.
                       </td>
                     </tr>
                   )}
@@ -240,7 +292,23 @@ export default function TamuClient() {
           </section>
 
           <section className="flex flex-col gap-3">
-            <h2 className="text-base font-semibold text-zinc-900">Riwayat Kunjungan</h2>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-base font-semibold text-zinc-900">
+                Riwayat Kunjungan{pilih ? `: ${pilih.nama}` : " (semua tamu)"}
+              </h2>
+              {pilih && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPilih(null);
+                    muatKunjungan("");
+                  }}
+                  className="rounded border border-zinc-300 px-2 py-1 text-xs text-zinc-700 hover:bg-zinc-100"
+                >
+                  Tampilkan Semua
+                </button>
+              )}
+            </div>
             <div className="overflow-x-auto rounded border border-zinc-200 bg-white">
               <table className="w-full text-left text-sm">
                 <thead>

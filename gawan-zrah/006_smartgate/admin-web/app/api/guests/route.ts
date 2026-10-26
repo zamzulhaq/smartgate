@@ -8,7 +8,7 @@ type GuestRingkas = {
   nama: string;
 };
 
-export async function GET() {
+export async function GET(request: Request) {
   const sesi = await dapatkanSesi();
   if (!sesi) {
     return NextResponse.json({ error: "Tidak terautentikasi" }, { status: 401 });
@@ -18,6 +18,8 @@ export async function GET() {
   }
 
   try {
+    const q = (new URL(request.url).searchParams.get("q") ?? "").trim();
+    const pola = q ? `%${q}%` : "";
     const rows = await queryAs<{
       id: string;
       nama: string;
@@ -29,8 +31,10 @@ export async function GET() {
               max(v.waktu_datang) as terakhir_datang
        from guests g
        left join guest_visits v on v.guest_id = g.id
+       where ($1 = '' or g.nama ilike $1)
        group by g.id, g.nama, g.created_at
        order by g.created_at desc`,
+      [pola],
     );
     return NextResponse.json(rows);
   } catch {

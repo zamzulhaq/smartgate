@@ -4,13 +4,18 @@ import { kodeError, queryAs } from "@/lib/db";
 
 const POLA_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export async function GET() {
+export async function GET(request: Request) {
   const sesi = await dapatkanSesi();
   if (!sesi) {
     return NextResponse.json({ error: "Tidak terautentikasi" }, { status: 401 });
   }
   if (sesi.role !== "admin" && sesi.role !== "satpam") {
     return NextResponse.json({ error: "Tidak berhak" }, { status: 403 });
+  }
+
+  const guestId = (new URL(request.url).searchParams.get("guest_id") ?? "").trim();
+  if (guestId && !POLA_UUID.test(guestId)) {
+    return NextResponse.json({ error: "ID tamu tidak valid" }, { status: 400 });
   }
 
   try {
@@ -26,13 +31,15 @@ export async function GET() {
     }>(
       { role: sesi.role, userId: sesi.profileId },
       `select v.id, v.guest_id, g.nama as nama_tamu, h.blok, h.nomor,
-              v.keperluan, p.nama as petugas, v.waktu_datang
+              v.keperluan, coalesce(p.nama, 'Petugas lain') as petugas, v.waktu_datang
        from guest_visits v
        join guests g on g.id = v.guest_id
        join houses h on h.id = v.house_id
-       join profiles p on p.id = v.dicatat_oleh
+       left join profiles p on p.id = v.dicatat_oleh
+       where ($1 = '' or v.guest_id::text = $1)
        order by v.waktu_datang desc
        limit 100`,
+      [guestId],
     );
     return NextResponse.json(rows);
   } catch {
