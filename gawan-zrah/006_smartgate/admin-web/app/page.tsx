@@ -26,6 +26,9 @@ export default function DashboardPage() {
           <Link href="/log-akses" className="rounded px-2 py-1 text-zinc-700 hover:bg-zinc-100">
             Log Akses
           </Link>
+          <Link href="/tamu" className="rounded px-2 py-1 text-zinc-700 hover:bg-zinc-100">
+            Tamu
+          </Link>
         </nav>
       </aside>
       <div className="flex min-h-screen flex-1 flex-col">
@@ -47,6 +50,9 @@ export default function DashboardPage() {
             </Link>
             <Link href="/log-akses" className="text-zinc-700">
               Log Akses
+            </Link>
+            <Link href="/tamu" className="text-zinc-700">
+              Tamu
             </Link>
             </nav>
           </div>
