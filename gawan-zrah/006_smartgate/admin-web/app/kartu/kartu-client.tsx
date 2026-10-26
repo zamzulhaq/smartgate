@@ -88,6 +88,9 @@ export default function KartuClient() {
           <Link href="/kartu" className="rounded px-2 py-1 text-zinc-900 hover:bg-zinc-100">
             Kartu Akses
           </Link>
+          <Link href="/log-akses" className="rounded px-2 py-1 text-zinc-700 hover:bg-zinc-100">
+            Log Akses
+          </Link>
         </nav>
       </aside>
       <div className="flex min-h-screen flex-1 flex-col">
@@ -106,6 +109,9 @@ export default function KartuClient() {
               </Link>
               <Link href="/kartu" className="text-zinc-900">
                 Kartu Akses
+              </Link>
+              <Link href="/log-akses" className="text-zinc-700">
+                Log Akses
               </Link>
             </nav>
           </div>
