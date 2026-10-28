@@ -19,8 +19,9 @@ dicatat di `docs/BACKLOG.md`.
       aplikasi), API baca admin, UI `/log-akses`.
 - [x] Tamu (MVP tanpa QR): `guests` + `guest_visits`, identifikasi duplikat via HMAC NIK
       (`NIK_HMAC_SECRET` terpisah, wajib, tanpa fallback), registrasi profil + pencatatan
-      kunjungan manual di `/tamu`, FK `access_logs.guest_id`. Pencarian nama tamu dan
-      riwayat kunjungan per tamu tersedia bagi admin/satpam.
+      kunjungan manual di `/tamu`. Halaman disederhanakan jadi alur check-in tunggal
+      (cari/daftar tamu → pilih rumah → catat kunjungan) dengan konfirmasi dan
+      pencegahan klik ganda. Pencarian nama dan deteksi NIK tetap ada; riwayat per tamu tetap bisa dilihat.
 - [x] Satpam dapat registrasi/mencari profil tamu dan mencatat kunjungan (RLS:
       `SELECT/INSERT` pada `guests`/`guest_visits`, `SELECT` pada `houses`;
       rumah/warga/kartu/log tetap admin).
