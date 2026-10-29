@@ -1,11 +1,11 @@
 import { Suspense } from "react";
-import Link from "next/link";
 import TamuClient from "./tamu-client";
+import { AppShell } from "@/components/app-shell";
 import { dapatkanSesi } from "@/lib/require-admin";
 
 export default function TamuPage() {
   return (
-    <Suspense fallback={<p className="p-6 text-sm text-zinc-500">Memuat...</p>}>
+    <Suspense fallback={<div className="min-h-screen bg-canvas" />}>
       <TamuShell />
     </Suspense>
   );
@@ -15,15 +15,18 @@ async function TamuShell() {
   const sesi = await dapatkanSesi();
   if (!sesi || (sesi.role !== "admin" && sesi.role !== "satpam")) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-50 px-4">
-        <div className="w-full max-w-md rounded border border-zinc-200 bg-white p-6 text-center">
-          <p className="text-sm text-zinc-600">Login sebagai admin atau satpam untuk mengelola data tamu.</p>
-          <Link href="/" className="mt-3 inline-block text-sm text-zinc-900 underline">
-            Kembali ke Dashboard
-          </Link>
+      <AppShell role={(sesi?.role as any) ?? null} subtitle="Tamu">
+        <div className="flex flex-1 items-center justify-center">
+          <div className="w-full max-w-md rounded-[16px] border border-border bg-card p-6 text-center shadow-soft">
+            <p className="text-sm text-text">Login sebagai admin atau satpam untuk mengelola data tamu.</p>
+          </div>
         </div>
-      </div>
+      </AppShell>
     );
   }
-  return <TamuClient />;
+  return (
+    <AppShell role={sesi.role as any} subtitle="Tamu">
+      <TamuClient />
+    </AppShell>
+  );
 }

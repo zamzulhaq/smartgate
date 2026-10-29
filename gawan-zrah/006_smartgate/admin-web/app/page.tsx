@@ -1,140 +1,76 @@
-import Link from "next/link";
-import { Suspense } from "react";
+﻿import { Suspense } from "react";
 import DbStatus from "./db-status";
 import LoginBox from "./login-box";
-import { queryAs } from "@/lib/db";
+import { query } from "@/lib/db";
 import { dapatkanSesi } from "@/lib/require-admin";
+import { AppShell } from "@/components/app-shell";
 
 export default function DashboardPage() {
   return (
-    <div className="flex min-h-screen bg-zinc-50">
-      <aside className="hidden w-64 border-r border-zinc-200 bg-white md:flex md:flex-col">
-        <div className="border-b border-zinc-200 px-4 py-4">
-          <p className="text-sm font-semibold text-zinc-900">Smart Gate</p>
-          <p className="text-xs text-zinc-500">Manajemen Perumahan</p>
-        </div>
-        <nav className="flex flex-1 flex-col gap-1 px-2 py-3 text-sm">
-          <Link href="/" className="rounded px-2 py-1 text-zinc-900 hover:bg-zinc-100">
-            Dashboard
-          </Link>
-          <Link href="/rumah-warga" className="rounded px-2 py-1 text-zinc-700 hover:bg-zinc-100">
-            Rumah &amp; Warga
-          </Link>
-          <Link href="/kartu" className="rounded px-2 py-1 text-zinc-700 hover:bg-zinc-100">
-            Kartu Akses
-          </Link>
-          <Link href="/log-akses" className="rounded px-2 py-1 text-zinc-700 hover:bg-zinc-100">
-            Log Akses
-          </Link>
-          <Link href="/tamu" className="rounded px-2 py-1 text-zinc-700 hover:bg-zinc-100">
-            Tamu
-          </Link>
-        </nav>
-      </aside>
-      <div className="flex min-h-screen flex-1 flex-col">
-        <header className="flex items-center justify-between border-b border-zinc-200 bg-white px-4 py-3 md:px-6">
-          <div>
-            <p className="text-sm font-medium text-zinc-900">Dashboard Admin</p>
-            <p className="text-xs text-zinc-500">Pengelolaan rumah dan warga</p>
-          </div>
-          <div className="md:hidden">
-            <nav className="flex items-center gap-3 text-sm">
-              <Link href="/" className="text-zinc-900">
-                Dashboard
-              </Link>
-            <Link href="/rumah-warga" className="text-zinc-700">
-              Rumah &amp; Warga
-            </Link>
-            <Link href="/kartu" className="text-zinc-700">
-              Kartu Akses
-            </Link>
-            <Link href="/log-akses" className="text-zinc-700">
-              Log Akses
-            </Link>
-            <Link href="/tamu" className="text-zinc-700">
-              Tamu
-            </Link>
-            </nav>
-          </div>
-        </header>
-        <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 px-4 py-6 md:px-6">
-          <section aria-label="Status database">
-            <Suspense
-              fallback={<p className="text-sm text-zinc-500">Memeriksa koneksi database...</p>}
-            >
-              <DbStatus />
-            </Suspense>
-          </section>
+    <Suspense fallback={<div className="min-h-screen bg-canvas" />}>
+      <DashboardShell />
+    </Suspense>
+  );
+}
 
-          <LoginBox />
+async function DashboardShell() {
+  const sesi = await dapatkanSesi();
+  return (
+    <AppShell role={(sesi?.role as any) ?? null} subtitle={sesi ? `Login sebagai ${sesi.role}` : "Akses publik"}>
+      <section aria-label="Status database">
+        <Suspense fallback={<p className="text-sm text-muted">Memeriksa koneksi database...</p>}>
+          <DbStatus />
+        </Suspense>
+      </section>
 
-          <Suspense fallback={<p className="text-sm text-zinc-500">Memuat ringkasan...</p>}>
-            <Ringkasan />
-          </Suspense>
-        </main>
-      </div>
-    </div>
+      <LoginBox />
+
+      <Suspense fallback={<p className="text-sm text-muted">Memuat ringkasan...</p>}>
+        <Ringkasan />
+      </Suspense>
+    </AppShell>
   );
 }
 
 async function Ringkasan() {
-  const sesi = await dapatkanSesi();
-  if (!sesi) {
-    return <p className="text-sm text-zinc-600">Login untuk melihat dashboard.</p>;
-  }
-  if (sesi.role === "satpam") {
-    return (
-      <section className="flex flex-col gap-2">
-        <h2 className="text-lg font-semibold text-zinc-900">Pos Satpam</h2>
-        <p className="text-sm text-zinc-600">
-          Gunakan menu Tamu untuk mencari/mendaftarkan tamu dan mencatat kunjungan.
-        </p>
-        <Link href="/tamu" className="w-fit rounded border border-zinc-300 px-3 py-1 text-sm text-zinc-700">
-          Buka Halaman Tamu
-        </Link>
-      </section>
-    );
-  }
-  if (sesi.role !== "admin") {
-    return <p className="text-sm text-zinc-600">Akses ditolak atau gagal memuat ringkasan.</p>;
-  }
-
   try {
-    const [rumah, warga] = await Promise.all([
-      queryAs<{ total: string }>(
-        { role: sesi.role, userId: sesi.profileId },
-        "select count(*)::text as total from houses",
-      ),
-      queryAs<{ total: string }>(
-        { role: sesi.role, userId: sesi.profileId },
-        "select count(*)::text as total from residents",
-      ),
+    const [houses, residents, cards, logs, guests, visits] = await Promise.all([
+      query<{ count: number }>("select count(*)::int as count from houses"),
+      query<{ count: number }>("select count(*)::int as count from residents"),
+      query<{ count: number }>("select count(*)::int as count from cards"),
+      query<{ count: number }>("select count(*)::int as count from access_logs"),
+      query<{ count: number }>("select count(*)::int as count from guests"),
+      query<{ count: number }>("select count(*)::int as count from guest_visits"),
     ]);
-
     return (
-      <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-semibold text-zinc-900">Ringkasan</h2>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div className="rounded border border-zinc-200 bg-white p-4">
-            <p className="text-sm text-zinc-500">Total Rumah</p>
-            <p className="mt-1 text-2xl font-semibold text-zinc-900">{rumah[0]?.total ?? "0"}</p>
-          </div>
-          <div className="rounded border border-zinc-200 bg-white p-4">
-            <p className="text-sm text-zinc-500">Total Warga</p>
-            <p className="mt-1 text-2xl font-semibold text-zinc-900">{warga[0]?.total ?? "0"}</p>
-          </div>
+      <section className="grid gap-3 rounded-[16px] border border-border bg-card p-4 shadow-soft md:grid-cols-3">
+        <div>
+          <p className="text-xs text-muted">Rumah</p>
+          <p className="text-lg font-semibold text-text">{houses[0]?.count ?? 0}</p>
         </div>
-        <div className="flex flex-wrap gap-2 text-sm">
-          <Link
-            href="/kartu"
-            className="rounded border border-zinc-300 px-3 py-1 text-zinc-700"
-          >
-            Kelola Kartu Akses
-          </Link>
+        <div>
+          <p className="text-xs text-muted">Warga</p>
+          <p className="text-lg font-semibold text-text">{residents[0]?.count ?? 0}</p>
+        </div>
+        <div>
+          <p className="text-xs text-muted">Kartu</p>
+          <p className="text-lg font-semibold text-text">{cards[0]?.count ?? 0}</p>
+        </div>
+        <div>
+          <p className="text-xs text-muted">Log Akses</p>
+          <p className="text-lg font-semibold text-text">{logs[0]?.count ?? 0}</p>
+        </div>
+        <div>
+          <p className="text-xs text-muted">Tamu (profil)</p>
+          <p className="text-lg font-semibold text-text">{guests[0]?.count ?? 0}</p>
+        </div>
+        <div>
+          <p className="text-xs text-muted">Kunjungan</p>
+          <p className="text-lg font-semibold text-text">{visits[0]?.count ?? 0}</p>
         </div>
       </section>
     );
   } catch {
-    return <p className="text-sm text-zinc-600">Akses ditolak atau gagal memuat ringkasan.</p>;
+    return <p className="text-sm text-muted">Tidak bisa memuat ringkasan (periksa login dan koneksi database).</p>;
   }
 }
