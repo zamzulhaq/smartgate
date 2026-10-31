@@ -28,7 +28,7 @@ export function Sidebar({ role }: { role: Role }) {
   const items = navItems.filter((item) => role && (item.roles as string[]).includes(role));
 
   return (
-    <aside className="hidden w-72 border-r border-border bg-card shadow-[0_1px_8px_rgba(0,0,0,0.04)] md:fixed md:left-0 md:top-0 md:h-screen md:flex md:flex-col">
+    <aside className="hidden w-72 border-r border-border bg-card shadow-[0_1px_8px_rgba(0,0,0,0.04)] md:fixed md:left-0 md:top-0 md:h-screen md:flex md:flex-col md:z-40">
       <div className="flex flex-col px-6 pb-6 pt-5">
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/90">
