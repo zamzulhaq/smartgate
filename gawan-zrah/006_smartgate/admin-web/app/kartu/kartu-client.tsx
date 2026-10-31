@@ -1,8 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Plus, CreditCard, Search, Ban, CheckCircle2 } from "lucide-react";
+import { cn } from "@/components/ui/cn";
 
 type Warga = { id: string; nama: string };
 type Kartu = {
@@ -20,6 +25,8 @@ export default function KartuClient() {
   const [warga, setWarga] = useState<Warga[]>([]);
   const [kartu, setKartu] = useState<Kartu[]>([]);
   const [pesan, setPesan] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   async function muat() {
     const [rw, rk] = await Promise.all([
@@ -45,13 +52,14 @@ export default function KartuClient() {
         resident_id: isi.get("resident_id"),
         uid: isi.get("uid"),
         label: isi.get("label"),
-        status: isi.get("status"),
+        status: isi.get("status") || "aktif",
       }),
     });
     const data = await res.json();
     setPesan(res.ok ? "Kartu berhasil didaftarkan." : data.error ?? "Gagal mendaftarkan kartu.");
     if (res.ok) {
       form.reset();
+      setDrawerOpen(false);
       muat();
       router.refresh();
     }
@@ -71,153 +79,137 @@ export default function KartuClient() {
     }
   }
 
+  const filtered = kartu.filter((k) => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    return k.nama.toLowerCase().includes(q) || (k.label ?? "").toLowerCase().includes(q);
+  });
+
+  function getStatusBadge(status: string) {
+    if (status === "aktif") return <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200">Aktif</Badge>;
+    if (status === "dicabut") return <Badge className="bg-red-50 text-red-700 border-red-200">Dicabut</Badge>;
+    return <Badge>{status}</Badge>;
+  }
+
   return (
-    <div className="flex min-h-screen bg-zinc-50">
-      <aside className="hidden w-64 border-r border-zinc-200 bg-white md:flex md:flex-col">
-        <div className="border-b border-zinc-200 px-4 py-4">
-          <p className="text-sm font-semibold text-zinc-900">Smart Gate</p>
-          <p className="text-xs text-zinc-500">Manajemen Perumahan</p>
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-text md:text-2xl">Kartu Akses</h1>
+          <p className="text-sm text-muted">Kelola kartu akses RFID untuk warga (hanya admin)</p>
         </div>
-        <nav className="flex flex-1 flex-col gap-1 px-2 py-3 text-sm">
-          <Link href="/" className="rounded px-2 py-1 text-zinc-700 hover:bg-zinc-100">
-            Dashboard
-          </Link>
-          <Link href="/rumah-warga" className="rounded px-2 py-1 text-zinc-700 hover:bg-zinc-100">
-            Rumah &amp; Warga
-          </Link>
-          <Link href="/kartu" className="rounded px-2 py-1 text-zinc-900 hover:bg-zinc-100">
-            Kartu Akses
-          </Link>
-          <Link href="/log-akses" className="rounded px-2 py-1 text-zinc-700 hover:bg-zinc-100">
-            Log Akses
-          </Link>
-          <Link href="/tamu" className="rounded px-2 py-1 text-zinc-700 hover:bg-zinc-100">
-            Tamu
-          </Link>
-        </nav>
-      </aside>
-      <div className="flex min-h-screen flex-1 flex-col">
-        <header className="flex items-center justify-between border-b border-zinc-200 bg-white px-4 py-3 md:px-6">
-          <div>
-            <p className="text-sm font-medium text-zinc-900">Kartu Akses</p>
-            <p className="text-xs text-zinc-500">Daftarkan kartu dummy ke warga (hanya admin)</p>
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+            <Input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Cari warga atau label..." className="pl-9 w-full md:w-72" />
           </div>
-          <div className="md:hidden">
-            <nav className="flex items-center gap-3 text-sm">
-              <Link href="/" className="text-zinc-700">
-                Dashboard
-              </Link>
-              <Link href="/rumah-warga" className="text-zinc-700">
-                Rumah &amp; Warga
-              </Link>
-              <Link href="/kartu" className="text-zinc-900">
-                Kartu Akses
-              </Link>
-              <Link href="/log-akses" className="text-zinc-700">
-                Log Akses
-              </Link>
-              <Link href="/tamu" className="text-zinc-700">
-                Tamu
-              </Link>
-            </nav>
-          </div>
-        </header>
-        <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 px-4 py-6 md:px-6">
-          <section className="flex flex-col gap-3 rounded border border-zinc-200 bg-white p-4">
-            <h2 className="text-base font-semibold text-zinc-900">Daftarkan Kartu (Dummy)</h2>
-            <p className="text-xs text-zinc-500">UID tidak disimpan mentah. Hanya HMAC-SHA256 yang disimpan.</p>
-            <form onSubmit={daftar} className="flex flex-wrap items-end gap-3">
-              <label className="flex flex-col gap-1 text-sm">
-                Warga
-                <select name="resident_id" required className="rounded border border-zinc-300 px-2 py-1">
+          <Button onClick={() => { setPesan(""); setDrawerOpen(true); }} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Daftarkan Kartu
+          </Button>
+        </div>
+      </div>
+
+      {pesan ? <p className="text-sm text-text">{pesan}</p> : null}
+
+      <Card className="overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-zinc-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">Warga</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">Label</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">Terdaftar</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">Dicabut</th>
+                <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-muted">Aksi</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {filtered.map((k) => (
+                <tr key={k.id} className="hover:bg-zinc-50/50">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/20">
+                        <CreditCard className="h-4 w-4 text-text" />
+                      </div>
+                      <div className="font-medium text-text">{k.nama}</div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-text">{k.label ?? "-"}</td>
+                  <td className="px-6 py-4">{getStatusBadge(k.status)}</td>
+                  <td className="px-6 py-4 text-muted">{k.created_at ? new Date(k.created_at).toLocaleString("id-ID") : "-"}</td>
+                  <td className="px-6 py-4 text-muted">{k.revoked_at ? new Date(k.revoked_at).toLocaleString("id-ID") : "-"}</td>
+                  <td className="px-6 py-4 text-right">
+                    {k.status === "aktif" ? (
+                      <Button variant="ghost" size="sm" onClick={() => ubahStatus(k, "cabut")} className="gap-1 text-red-600 hover:text-red-700">
+                        <Ban className="h-4 w-4" />
+                        Cabut
+                      </Button>
+                    ) : null}
+                    {k.status === "dicabut" ? (
+                      <Button variant="ghost" size="sm" onClick={() => ubahStatus(k, "aktifkan")} className="gap-1 text-emerald-600 hover:text-emerald-700">
+                        <CheckCircle2 className="h-4 w-4" />
+                        Aktifkan
+                      </Button>
+                    ) : null}
+                  </td>
+                </tr>
+              ))}
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-8 text-center text-sm text-muted">Belum ada kartu terdaftar.</td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      {drawerOpen ? (
+        <div className="fixed inset-0 z-50 flex">
+          <div className="flex-1 bg-black/40" onClick={() => setDrawerOpen(false)} />
+          <div className="w-full max-w-md bg-card shadow-xl flex flex-col h-full">
+            <div className="flex items-center justify-between border-b border-border px-6 py-4">
+              <h2 className="text-lg font-semibold text-text">Daftarkan Kartu</h2>
+              <button onClick={() => setDrawerOpen(false)} className="text-muted hover:text-text">✕</button>
+            </div>
+            <form onSubmit={daftar} className="flex flex-1 flex-col gap-4 p-6 overflow-y-auto">
+              <div className="flex flex-col gap-2">
+                <label className="text-sm text-text">Warga</label>
+                <select name="resident_id" required className="rounded-[12px] border border-border px-3 py-2 text-sm">
                   <option value="">-- pilih warga --</option>
                   {warga.map((w) => (
-                    <option key={w.id} value={w.id}>
-                      {w.nama}
-                    </option>
+                    <option key={w.id} value={w.id}>{w.nama}</option>
                   ))}
                 </select>
-              </label>
-              <label className="flex flex-col gap-1 text-sm">
-                UID Dummy (heks)
-                <input name="uid" required placeholder="04AABBCCDD" className="rounded border border-zinc-300 px-2 py-1" />
-              </label>
-              <label className="flex flex-col gap-1 text-sm">
-                Label
-                <input name="label" placeholder="KTP lama" className="rounded border border-zinc-300 px-2 py-1" />
-              </label>
-              <label className="flex flex-col gap-1 text-sm">
-                Status
-                <select name="status" className="rounded border border-zinc-300 px-2 py-1">
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="text-sm text-text">UID Dummy (heks)</label>
+                <Input name="uid" required placeholder="04AABBCCDD" />
+                <p className="text-xs text-muted">UID tidak disimpan mentah. Hanya HMAC-SHA256 yang disimpan.</p>
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="text-sm text-text">Label</label>
+                <Input name="label" placeholder="KTP lama" />
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="text-sm text-text">Status</label>
+                <select name="status" defaultValue="aktif" className="rounded-[12px] border border-border px-3 py-2 text-sm">
                   <option value="aktif">aktif</option>
                   <option value="dicabut">dicabut</option>
                   <option value="hilang">hilang</option>
                 </select>
-              </label>
-              <button type="submit" className="rounded bg-zinc-900 px-3 py-1 text-sm text-white">
-                Daftarkan
-              </button>
+              </div>
+              {pesan ? <p className="text-sm text-text">{pesan}</p> : null}
+              <div className="mt-auto flex gap-2">
+                <Button type="button" variant="secondary" onClick={() => setDrawerOpen(false)} className="flex-1">Batal</Button>
+                <Button type="submit" className="flex-1">Daftarkan</Button>
+              </div>
             </form>
-            {pesan && <p className="text-sm text-zinc-700">{pesan}</p>}
-          </section>
-
-          <section className="flex flex-col gap-3">
-            <h2 className="text-base font-semibold text-zinc-900">Daftar Kartu</h2>
-            <div className="overflow-x-auto rounded border border-zinc-200 bg-white">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b border-zinc-200">
-                    <th className="px-3 py-2">Warga</th>
-                    <th className="px-3 py-2">Label</th>
-                    <th className="px-3 py-2">Status</th>
-                    <th className="px-3 py-2">Terdaftar</th>
-                    <th className="px-3 py-2">Dicabut</th>
-                    <th className="px-3 py-2">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {kartu.map((k) => (
-                    <tr key={k.id} className="border-b border-zinc-100">
-                      <td className="px-3 py-2">{k.nama}</td>
-                      <td className="px-3 py-2">{k.label ?? "-"}</td>
-                      <td className="px-3 py-2">{k.status}</td>
-                      <td className="px-3 py-2">{k.created_at}</td>
-                      <td className="px-3 py-2">{k.revoked_at ?? "-"}</td>
-                      <td className="px-3 py-2">
-                        {k.status === "aktif" && (
-                          <button
-                            type="button"
-                            onClick={() => ubahStatus(k, "cabut")}
-                            className="rounded border border-zinc-300 px-2 py-1 text-xs text-zinc-700 hover:bg-zinc-100"
-                          >
-                            Cabut
-                          </button>
-                        )}
-                        {k.status === "dicabut" && (
-                          <button
-                            type="button"
-                            onClick={() => ubahStatus(k, "aktifkan")}
-                            className="rounded border border-zinc-300 px-2 py-1 text-xs text-zinc-700 hover:bg-zinc-100"
-                          >
-                            Aktifkan
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                  {kartu.length === 0 && (
-                    <tr>
-                      <td colSpan={6} className="px-3 py-2 text-zinc-500">
-                        Belum ada kartu terdaftar.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        </main>
-      </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
