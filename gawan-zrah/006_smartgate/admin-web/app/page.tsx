@@ -15,16 +15,11 @@ export default function DashboardPage() {
 
 async function DashboardShell() {
   const sesi = await dapatkanSesi();
+  if (!sesi) {
+    return <LoginBox />;
+  }
   return (
-    <AppShell role={(sesi?.role as any) ?? null} subtitle={sesi ? `Login sebagai ${sesi.role}` : "Akses publik"}>
-      <section aria-label="Status database">
-        <Suspense fallback={<p className="text-sm text-muted">Memeriksa koneksi database...</p>}>
-          <DbStatus />
-        </Suspense>
-      </section>
-
-      <LoginBox />
-
+    <AppShell role={(sesi?.role as any) ?? null} subtitle={`Login sebagai ${sesi.role}`}>
       <Suspense fallback={<p className="text-sm text-muted">Memuat ringkasan...</p>}>
         <Ringkasan />
       </Suspense>
@@ -71,6 +66,6 @@ async function Ringkasan() {
       </section>
     );
   } catch {
-    return <p className="text-sm text-muted">Tidak bisa memuat ringkasan (periksa login dan koneksi database).</p>;
+    return <p className="text-sm text-muted">Tidak bisa memuat ringkasan.</p>;
   }
 }
