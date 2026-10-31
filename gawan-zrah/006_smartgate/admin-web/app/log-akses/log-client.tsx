@@ -1,7 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { FileText } from "lucide-react";
 
 type Log = {
   id: string;
@@ -34,97 +36,62 @@ export default function LogClient() {
       .catch(() => setPesan("Gagal memuat log akses."));
   }, []);
 
+  function hasilBadge(hasil: string) {
+    if (hasil === "berhasil" || hasil === "sukses") {
+      return <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200">Berhasil</Badge>;
+    }
+    return <Badge className="bg-red-50 text-red-700 border-red-200">Ditolak</Badge>;
+  }
+
   return (
-    <div className="flex min-h-screen bg-zinc-50">
-      <aside className="hidden w-64 border-r border-zinc-200 bg-white md:flex md:flex-col">
-        <div className="border-b border-zinc-200 px-4 py-4">
-          <p className="text-sm font-semibold text-zinc-900">Smart Gate</p>
-          <p className="text-xs text-zinc-500">Manajemen Perumahan</p>
-        </div>
-        <nav className="flex flex-1 flex-col gap-1 px-2 py-3 text-sm">
-          <Link href="/" className="rounded px-2 py-1 text-zinc-700 hover:bg-zinc-100">
-            Dashboard
-          </Link>
-          <Link href="/rumah-warga" className="rounded px-2 py-1 text-zinc-700 hover:bg-zinc-100">
-            Rumah &amp; Warga
-          </Link>
-          <Link href="/kartu" className="rounded px-2 py-1 text-zinc-700 hover:bg-zinc-100">
-            Kartu Akses
-          </Link>
-          <Link href="/log-akses" className="rounded px-2 py-1 text-zinc-900 hover:bg-zinc-100">
-            Log Akses
-          </Link>
-          <Link href="/tamu" className="rounded px-2 py-1 text-zinc-900 hover:bg-zinc-100">
-            Tamu
-          </Link>
-        </nav>
-      </aside>
-      <div className="flex min-h-screen flex-1 flex-col">
-        <header className="flex items-center justify-between border-b border-zinc-200 bg-white px-4 py-3 md:px-6">
-          <div>
-            <p className="text-sm font-medium text-zinc-900">Log Akses</p>
-            <p className="text-xs text-zinc-500">Riwayat tap kartu/QR di gerbang (hanya baca)</p>
-          </div>
-          <div className="md:hidden">
-            <nav className="flex items-center gap-3 text-sm">
-              <Link href="/" className="text-zinc-700">
-                Dashboard
-              </Link>
-              <Link href="/rumah-warga" className="text-zinc-700">
-                Rumah &amp; Warga
-              </Link>
-              <Link href="/kartu" className="text-zinc-700">
-                Kartu Akses
-              </Link>
-              <Link href="/log-akses" className="text-zinc-900">
-                Log Akses
-              </Link>
-              <Link href="/tamu" className="text-zinc-900">
-                Tamu
-              </Link>
-            </nav>
-          </div>
-        </header>
-        <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-4 px-4 py-6 md:px-6">
-          <p className="text-xs text-zinc-500">Log bersifat insert-only; tidak bisa diubah atau dihapus.</p>
-          {pesan && <p className="text-sm text-zinc-700">{pesan}</p>}
-          <div className="overflow-x-auto rounded border border-zinc-200 bg-white">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-zinc-200">
-                  <th className="px-3 py-2">Waktu</th>
-                  <th className="px-3 py-2">Gerbang</th>
-                  <th className="px-3 py-2">Arah</th>
-                  <th className="px-3 py-2">Metode</th>
-                  <th className="px-3 py-2">Hasil</th>
-                  <th className="px-3 py-2">Alasan</th>
-                  <th className="px-3 py-2">Warga</th>
-                </tr>
-              </thead>
-              <tbody>
-                {log.map((l) => (
-                  <tr key={l.id} className="border-b border-zinc-100">
-                    <td className="px-3 py-2">{waktu(l.server_time)}</td>
-                    <td className="px-3 py-2">{l.gerbang ?? "-"}</td>
-                    <td className="px-3 py-2">{l.arah}</td>
-                    <td className="px-3 py-2">{l.metode}</td>
-                    <td className="px-3 py-2">{l.hasil}</td>
-                    <td className="px-3 py-2">{l.alasan_tolak ?? "-"}</td>
-                    <td className="px-3 py-2">{l.nama_warga ?? "-"}</td>
-                  </tr>
-                ))}
-                {log.length === 0 && (
-                  <tr>
-                    <td colSpan={7} className="px-3 py-2 text-zinc-500">
-                      Belum ada log akses.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </main>
+    <div className="flex flex-col gap-6">
+      <div>
+        <h1 className="text-xl font-semibold text-text md:text-2xl">Log Akses</h1>
+        <p className="text-sm text-muted">Riwayat akses gerbang (hanya baca)</p>
       </div>
+
+      {pesan ? <p className="text-sm text-text">{pesan}</p> : null}
+
+      <Card className="overflow-hidden">
+        <div className="flex items-center gap-2 border-b border-border px-6 py-4">
+          <FileText className="h-5 w-5 text-muted" />
+          <h2 className="text-base font-semibold text-text">Riwayat Akses</h2>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-zinc-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">Waktu</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">Gerbang</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">Arah</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">Metode</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">Hasil</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">Alasan Penolakan</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted">Warga/Tamu</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {log.map((l) => (
+                <tr key={l.id} className="hover:bg-zinc-50/50">
+                  <td className="px-6 py-4 text-text">{waktu(l.server_time)}</td>
+                  <td className="px-6 py-4 text-text">{l.gerbang ?? "-"}</td>
+                  <td className="px-6 py-4 text-text">{l.arah}</td>
+                  <td className="px-6 py-4 text-text">{l.metode}</td>
+                  <td className="px-6 py-4">{hasilBadge(l.hasil)}</td>
+                  <td className="px-6 py-4 text-muted">{l.alasan_tolak ?? "-"}</td>
+                  <td className="px-6 py-4 text-text">{l.nama_warga ?? "-"}</td>
+                </tr>
+              ))}
+              {log.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-8 text-center text-sm text-muted">Belum ada log akses.</td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+      <p className="text-xs text-muted">Log bersifat insert-only; tidak bisa diubah atau dihapus.</p>
     </div>
   );
 }
