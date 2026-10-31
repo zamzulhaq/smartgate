@@ -18,7 +18,7 @@ export function AppShell({
   return (
     <div className="flex min-h-screen bg-canvas">
       <Sidebar role={role} />
-      <div className="flex min-h-screen flex-1 flex-col md:ml-72">
+      <div className="flex min-h-screen flex-1 flex-col">
         <Header role={role} subtitle={subtitle} />
         <main className={cn("mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-6 md:px-8", className)}>
           {children}
