@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Smart Gate & Manajemen Perumahan",
-  description: "Portal pengelolaan perumahan Smart Gate",
+  title: "SmartGate - Smart Gate & Manajemen Perumahan",
+  description: "Portal pengelolaan perumahan SmartGate",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

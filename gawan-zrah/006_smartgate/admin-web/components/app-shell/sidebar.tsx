@@ -35,7 +35,7 @@ export function Sidebar({ role }: { role: Role }) {
             <ShieldCheck className="h-5 w-5 text-text" />
           </div>
           <div className="flex flex-col">
-            <span className="text-lg font-bold leading-none tracking-tight text-text">GatePro</span>
+            <span className="text-lg font-bold leading-none tracking-tight text-text">SmartGate</span>
             <span className="mt-0.5 text-[11px] font-semibold uppercase tracking-wider text-muted">Smart Access</span>
           </div>
         </div>

@@ -16,7 +16,7 @@ export function Header({ role, subtitle }: { role: Role; subtitle?: string }) {
     <header className="sticky top-0 z-30 flex flex-col gap-2 border-b border-border bg-card/95 px-4 py-2 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] md:px-6">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-text">Smart Gate</p>
+          <p className="text-sm font-medium text-text">SmartGate</p>
           {subtitle ? <p className="text-xs text-muted">{subtitle}</p> : null}
         </div>
         {role ? (
